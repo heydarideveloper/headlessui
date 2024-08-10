@@ -70,6 +70,7 @@ export type CheckboxProps<
     autoFocus?: boolean
     form?: string
     name?: string
+    isUseEvent: boolean
     onChange?: (checked: boolean) => void
   }
 >
@@ -91,6 +92,7 @@ function CheckboxFn<TTag extends ElementType = typeof DEFAULT_CHECKBOX_TAG, TTyp
     name,
     value,
     form,
+    isUseEvent = false,
     indeterminate = false,
     ...theirProps
   } = props
@@ -107,10 +109,13 @@ function CheckboxFn<TTag extends ElementType = typeof DEFAULT_CHECKBOX_TAG, TTyp
 
   let d = useDisposables()
   let [changing, setChanging] = useState(false)
-  let toggle = useEvent(() => {
+  let toggle = useEvent((event) => {
     setChanging(true)
-    onChange?.(!checked)
-
+    if (isUseEvent) {
+      onChange?.(event)
+    } else {
+      onChange?.(!checked)
+    }
     d.nextFrame(() => {
       setChanging(false)
     })
@@ -119,13 +124,13 @@ function CheckboxFn<TTag extends ElementType = typeof DEFAULT_CHECKBOX_TAG, TTyp
   let handleClick = useEvent((event: ReactMouseEvent) => {
     if (isDisabledReactIssue7711(event.currentTarget)) return event.preventDefault()
     event.preventDefault()
-    toggle()
+    toggle(event)
   })
 
   let handleKeyUp = useEvent((event: ReactKeyboardEvent<HTMLButtonElement>) => {
     if (event.key === Keys.Space) {
       event.preventDefault()
-      toggle()
+      toggle(event)
     } else if (event.key === Keys.Enter) {
       attemptSubmit(event.currentTarget)
     }
